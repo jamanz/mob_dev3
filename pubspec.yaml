@@ -21,6 +21,8 @@ environment:
   sdk: ">=2.7.0 <3.0.0"
 
 dependencies:
+  form_validator: ^0.1.7
+  provider: ^4.1.2
   flutter:
     sdk: flutter
 
@@ -43,6 +45,7 @@ flutter:
   assets:
     - assets/Posters/
     - assets/MoviesList.txt
+    - assets/imdb/
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
