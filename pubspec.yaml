@@ -24,6 +24,9 @@ dependencies:
   form_validator: ^0.1.7
   image_picker: ^0.6.6+5
   flutter_staggered_grid_view: "^0.3.2"
+  charts_flutter: ^0.9.0
+  line_chart: ^1.0.9
+  pie_chart: ^4.0.1
   transparent_image: ^1.0.0
   provider: ^4.1.2
   flutter:

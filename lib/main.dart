@@ -7,6 +7,7 @@ import 'search.dart';
 import 'package:provider/provider.dart';
 import 'add.dart';
 import 'album.dart';
+import 'chart.dart';
 
 Future<void> main() async {
   runApp(MyApp());
@@ -22,7 +23,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [ChangeNotifierProvider.value(value: MovieList())],
       child: MaterialApp(
-        home: DefaultTabController(length: 2, child: HomeBody()),
+        home: DefaultTabController(length: 4, child: HomeBody()),
         theme: ThemeData(
           backgroundColor: Colors.amber,
           cardColor: Colors.amber[100],
@@ -85,7 +86,9 @@ class _HomeBodyState extends State<HomeBody> {
               },
               tabs: [
                 Tab(icon: Icon(Icons.movie)),
-                Tab(icon: Icon(Icons.photo))
+                Tab(icon: Icon(Icons.photo)),
+                Tab(icon: Icon(Icons.add_chart)),
+                Tab(icon: Icon(Icons.insert_chart))
               ],
             ),
             title: Text("Laba5")),
@@ -104,7 +107,12 @@ class _HomeBodyState extends State<HomeBody> {
               )
             : null,
         body: TabBarView(
-          children: [homePageBuilder(context), PhotosView()],
+          children: [
+            homePageBuilder(context),
+            PhotosView(),
+            ChartView(),
+            ChartView()
+          ],
         ));
   }
 

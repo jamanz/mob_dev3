@@ -10,3 +10,6 @@ https://www.youtube.com/watch?v=VUg3zLmMo-k
 
 Варіант 3 https://www.youtube.com/watch?v=meMlHySzaPU
 
+# lab 6 
+
+Варіант 3(Тільки PieChart) ![](https://media3.giphy.com/media/8tudCphARgNHEu4hX2/giphy.gif)
