@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:async' show Future;
@@ -7,6 +6,7 @@ import 'movie.dart';
 import 'search.dart';
 import 'package:provider/provider.dart';
 import 'add.dart';
+import 'album.dart';
 
 Future<void> main() async {
   runApp(MyApp());
@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [ChangeNotifierProvider.value(value: MovieList())],
       child: MaterialApp(
-        home: HomeBody(),
+        home: DefaultTabController(length: 2, child: HomeBody()),
         theme: ThemeData(
           backgroundColor: Colors.amber,
           cardColor: Colors.amber[100],
@@ -48,7 +48,7 @@ class MovieList extends ChangeNotifier {
 
   List<MovieItem> get getMovList => movList;
 
-  String get getLen => movList.length.toString();
+  int get getLen => movList.length;
 }
 
 class HomeBody extends StatefulWidget {
@@ -58,6 +58,7 @@ class HomeBody extends StatefulWidget {
 
 class _HomeBodyState extends State<HomeBody> {
   List<MovieItem> movieList = [];
+  int indexTab = 0;
 
   void _addMovieToList(MovieItem mov) {
     Provider.of<MovieList>(context, listen: false).addNew(mov);
@@ -67,27 +68,44 @@ class _HomeBodyState extends State<HomeBody> {
   Widget build(BuildContext context) {
     List<MovieItem> movieList =
         Provider.of<MovieList>(context, listen: true).getMovList;
-    debugPrint('GET HERE');
     return Scaffold(
-        appBar: AppBar(actions: [
-          IconButton(
-              icon: Icon(Icons.search),
-              onPressed: () {
-                showSearch(context: context, delegate: Search(movieList));
-              })
-        ], title: Text("Laba3")),
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: Colors.yellow,
-          onPressed: () {
-            Navigator.push(
-                context, MaterialPageRoute(builder: (context) => AddPage()));
-          },
-          child: Icon(
-            Icons.add,
-            color: Colors.black54,
-          ),
-        ),
-        body: homePageBuilder(context));
+        appBar: AppBar(
+            actions: [
+              IconButton(
+                  icon: Icon(Icons.search),
+                  onPressed: () {
+                    showSearch(context: context, delegate: Search(movieList));
+                  })
+            ],
+            bottom: TabBar(
+              onTap: (index) {
+                setState(() {
+                  indexTab = index;
+                });
+              },
+              tabs: [
+                Tab(icon: Icon(Icons.movie)),
+                Tab(icon: Icon(Icons.photo))
+              ],
+            ),
+            title: Text("Laba5")),
+        floatingActionButton: indexTab == 0
+            ? FloatingActionButton(
+                backgroundColor: Colors.yellow,
+                heroTag: UniqueKey(),
+                onPressed: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => AddPage()));
+                },
+                child: Icon(
+                  Icons.add,
+                  color: Colors.black54,
+                ),
+              )
+            : null,
+        body: TabBarView(
+          children: [homePageBuilder(context), PhotosView()],
+        ));
   }
 
   Widget homePageBuilder(BuildContext context) {
@@ -96,48 +114,51 @@ class _HomeBodyState extends State<HomeBody> {
             DefaultAssetBundle.of(context).loadString("assets/MoviesList.txt"),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            var json = jsonDecode(snapshot.data.toString());
-            for (var item in json["Search"]) {
-              movieList.add(MovieItem.fromJson(item));
-              _addMovieToList(MovieItem.fromJson(item));
+            if (movieList.isEmpty) {
+              var json = jsonDecode(snapshot.data.toString());
+              for (var item in json["Search"]) {
+                movieList.add(MovieItem.fromJson(item));
+                _addMovieToList(MovieItem.fromJson(item));
+              }
             }
           }
 
           return Container(
             child: Consumer<MovieList>(
               builder: (context, movList, child) => new ListView.builder(
-                itemBuilder: (BuildContext context, int index) {
-                  return Dismissible(
-                    key: UniqueKey(),
-                    onDismissed: (direction) {
-                      setState(() {
-                        Provider.of<MovieList>(context, listen: false)
-                            .removeItemAt(index);
-                      });
-                    },
-                    child: Card(
-                      child: ListTile(
-                        title: Padding(
-                          padding: const EdgeInsets.only(
-                              top: 32, bottom: 32, left: 16, right: 16),
-                          child: MovieItemListView(
-                              mov:
-                                  Provider.of<MovieList>(context, listen: false)
-                                      .getMovList[index]),
+                  itemBuilder: (BuildContext context, int index) {
+                    return Dismissible(
+                      key: UniqueKey(),
+                      onDismissed: (direction) {
+                        setState(() {
+                          Provider.of<MovieList>(context, listen: false)
+                              .removeItemAt(index);
+                        });
+                      },
+                      child: Card(
+                        child: ListTile(
+                          title: Padding(
+                            padding: const EdgeInsets.only(
+                                top: 32, bottom: 32, left: 16, right: 16),
+                            child: MovieItemListView(
+                                mov: Provider.of<MovieList>(context,
+                                        listen: true)
+                                    .getMovList[index]),
+                          ),
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => MovieItemDetailedView(
+                                        mov: movieList[index])));
+                          },
                         ),
-                        onTap: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => MovieItemDetailedView(
-                                      mov: movieList[index])));
-                        },
                       ),
-                    ),
-                  );
-                },
-                itemCount: movieList == null ? 0 : movieList.length,
-              ),
+                    );
+                  },
+                  itemCount: movieList == null
+                      ? 0
+                      : Provider.of<MovieList>(context, listen: true).getLen),
             ),
           );
         });

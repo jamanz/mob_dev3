@@ -21,7 +21,8 @@ class _AddPageState extends State<AddPage> {
     if (_form.currentState.validate()) {
       _form.currentState.save();
       Provider.of<MovieList>(context, listen: false).addNew(mov);
-      debugPrint(Provider.of<MovieList>(context, listen: false).getLen);
+      debugPrint(
+          Provider.of<MovieList>(context, listen: false).getLen.toString());
       Navigator.pop(context);
     }
   }
