@@ -12,7 +12,6 @@ import 'package:provider/provider.dart';
 class Search extends SearchDelegate {
   List<MovieItem> movList = [];
   List<MovieItem> suggestList = [];
-  Map<String, int> hash = {};
   MovieItem selectedResult;
   // List<String> recentList = [];
 
@@ -27,7 +26,6 @@ class Search extends SearchDelegate {
             query = '';
             Navigator.push(context,
                 MaterialPageRoute(builder: (context) => futBuilder(context)));
-            debugPrint('ZAPUSH');
           })
     ];
   }
@@ -87,6 +85,10 @@ class Search extends SearchDelegate {
                     selectedResult = suggestList[index];
                     showResults(context);
                     // recentList.add(selectedResult);
+                    Provider.of<dbMov>(context, listen: false)
+                        .addNewToDB(selectedResult);
+                    Provider.of<MovieList>(context, listen: false)
+                        .addNew(selectedResult);
                     close(context, CircularProgressIndicator());
                     return Navigator.push(
                         context,

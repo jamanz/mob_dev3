@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:async' show Future;
 import 'package:http/http.dart' as http;
+import 'dbmovmodel.dart';
 
 class MovieItem {
   String title;
@@ -27,12 +28,14 @@ class MovieItem {
   String production;
   static const String _apiKey = '7e9fe69e';
 
+  String id;
+
   Map<String, dynamic> jsonFull;
 
   MovieItem.simple();
 
-  MovieItem({this.title, this.year, this.imdbID, this.type, this.poster}) {
-    debugPrint(this.imdbID);
+  MovieItem(
+      {this.title, this.year, this.imdbID, this.type, this.poster, this.id}) {
     if (this.imdbID != 'noid') {
       loadExtendedInfo(this.imdbID);
     }
@@ -42,12 +45,23 @@ class MovieItem {
     if (json == null) return null;
 
     return MovieItem(
+      id: UniqueKey().toString(),
       title: json['Title'] as String,
       year: json["Year"] as String,
       type: json["Type"] as String,
       poster: json["Poster"] as String,
       imdbID: json['imdbID'] as String,
     );
+  }
+
+  Map<String, dynamic> toDbMap() {
+    return {
+      "id": this.id ?? 'None',
+      "Title": this.title ?? 'None',
+      "Year": this.year ?? 'None',
+      "Poster": this.poster ?? 'None',
+      "Type": this.type ?? 'None',
+    };
   }
 
   Map<String, dynamic> get info {
@@ -104,7 +118,9 @@ class MovieItem {
 
 class MovieItemListView extends StatelessWidget {
   MovieItem mov;
-  MovieItemListView({this.mov});
+  MovieDatabase db;
+
+  MovieItemListView({this.mov, this.db});
 
   @override
   Widget build(BuildContext context) {

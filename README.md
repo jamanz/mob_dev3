@@ -17,3 +17,7 @@ https://www.youtube.com/watch?v=VUg3zLmMo-k
 # Lab 7
 
 Варіант 3 https://www.youtube.com/watch?v=Z8Qg9QJ06PE
+
+# Lab 8
+
+Варіант 1 SQLite. Реалізував тільки для таблиці з фільмами. Виникли вагомі складнощі у зв'язку з архітектурою проекту. Звичайний рефракторінг дозволить реалізувати другу частину завдання.  https://www.youtube.com/watch?v=rYxNHzsLOlA
