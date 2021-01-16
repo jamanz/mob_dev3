@@ -1,10 +1,24 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:transparent_image/transparent_image.dart';
+import 'package:http/http.dart' as http;
 
 class PhotosView extends StatefulWidget {
+  List<StaggeredTile> _staggeredTiles = <StaggeredTile>[
+    const StaggeredTile.count(1, 1),
+    const StaggeredTile.count(1, 1),
+    const StaggeredTile.count(1, 1),
+    const StaggeredTile.count(1, 1),
+    const StaggeredTile.count(2, 2),
+    const StaggeredTile.count(1, 1),
+    const StaggeredTile.count(1, 1),
+    const StaggeredTile.count(1, 1),
+    const StaggeredTile.count(1, 1)
+  ];
   @override
   _PhotosViewState createState() => _PhotosViewState();
 }
@@ -12,19 +26,6 @@ class PhotosView extends StatefulWidget {
 class _PhotosViewState extends State<PhotosView> {
   File _image;
   List<File> _imageList = [];
-
-  List<Color> _kColors = const <Color>[
-    Colors.green,
-    Colors.blue,
-    Colors.red,
-    Colors.pink,
-    Colors.indigo,
-    Colors.purple,
-    Colors.blueGrey,
-    Colors.lightGreen,
-    Colors.pink,
-    Colors.blue
-  ];
 
   _imgFromGallery() async {
     File image = await ImagePicker.pickImage(
@@ -75,13 +76,21 @@ class _PhotosViewState extends State<PhotosView> {
         });
   }
 
-  List<StaggeredTile> _showedStaggeredTiles = [
-    const StaggeredTile.count(1, 1),
-  ];
-  int c = 0;
+  List<StaggeredTile> _populStaggeredTiles() {
+    debugPrint('Populate Sarted');
+    List<StaggeredTile> _resList = [];
+    for (int i = 0; i < 3; i++) {
+      _resList.addAll(widget._staggeredTiles);
+    }
+    debugPrint('Populate OVER');
+    return _resList;
+  }
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('BEFORE POPULATE');
+    List<StaggeredTile> _countedTiles = _populStaggeredTiles();
+    debugPrint('AFTER POPULATE');
     return Container(
       child: Scaffold(
           // backgroundColor: Colors.purple[100],
@@ -94,8 +103,6 @@ class _PhotosViewState extends State<PhotosView> {
             ),
             onPressed: () {
               _showPicker(context);
-              _showedStaggeredTiles.add(_showedStaggeredTiles[c]);
-              c++;
             },
           ),
           body: StaggeredGridView.countBuilder(
@@ -103,27 +110,27 @@ class _PhotosViewState extends State<PhotosView> {
             crossAxisCount: 3,
             crossAxisSpacing: 4.0,
             mainAxisSpacing: 4.0,
-            itemBuilder: _getPhotoWidget,
-            staggeredTileBuilder: (int index) {
-              debugPrint('StaggeredBUILDER INDEX: $index');
-              return _staggeredTiles.sublist(index, index + 1)[0];
+            itemBuilder: (context, index) {
+              return FutureBuilder(
+                future: NetImageProvider.fetchMages(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return new Center(
+                      child: new FadeInImage.memoryNetwork(
+                          placeholder: kTransparentImage,
+                          image: snapshot.data['hits'][index]['webformatURL']),
+                    );
+                  } else {
+                    return CircularProgressIndicator();
+                  }
+                },
+              );
             },
-            itemCount: _showedStaggeredTiles.length - 1,
+            staggeredTileBuilder: (int index) => _countedTiles[index],
+            itemCount: _countedTiles.length,
           )),
     );
   }
-
-  List<StaggeredTile> _staggeredTiles = const <StaggeredTile>[
-    const StaggeredTile.count(1, 1),
-    const StaggeredTile.count(1, 1),
-    const StaggeredTile.count(1, 1),
-    const StaggeredTile.count(1, 1),
-    const StaggeredTile.count(2, 2),
-    const StaggeredTile.count(1, 1),
-    const StaggeredTile.count(1, 1),
-    const StaggeredTile.count(1, 1),
-    const StaggeredTile.count(1, 1)
-  ];
 
   Widget _getPhotoWidget(BuildContext context, int index) {
     return Center(
@@ -136,5 +143,42 @@ class _PhotosViewState extends State<PhotosView> {
                   color: Colors.cyan[200],
                 ),
               ));
+  }
+}
+
+class NetImageProvider {
+  static String _apiKey = '19193969-87191e5db266905fe8936d565';
+  static int count = 27;
+  static String request = 'night+city';
+
+  static Future<Map> fetchMages() async {
+    var response = await http.get(
+        "https://pixabay.com/api/?key=$_apiKey&q=$request&image_type=photo&per_page=$count");
+    var jeson = await jsonDecode(response.body);
+    return jeson;
+  }
+}
+
+class _Tile extends StatelessWidget {
+  const _Tile(this.index);
+
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+        future: NetImageProvider.fetchMages(),
+        builder: (context, snapshot) {
+          debugPrint(snapshot.data.toString());
+          if (snapshot.hasData) {
+            return new Center(
+              child: new FadeInImage.memoryNetwork(
+                  placeholder: kTransparentImage,
+                  image: snapshot.data['hits'][index]['previewURL']),
+            );
+          } else {
+            return CircularProgressIndicator();
+          }
+        });
   }
 }

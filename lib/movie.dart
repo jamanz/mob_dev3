@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:async' show Future;
+import 'package:http/http.dart' as http;
 
 class MovieItem {
   String title;
@@ -24,14 +25,16 @@ class MovieItem {
   String imdbID;
   String type;
   String production;
+  static const String _apiKey = '7e9fe69e';
 
   Map<String, dynamic> jsonFull;
 
   MovieItem.simple();
 
   MovieItem({this.title, this.year, this.imdbID, this.type, this.poster}) {
+    debugPrint(this.imdbID);
     if (this.imdbID != 'noid') {
-      loadExtendedInfo('assets/imdb/' + this.imdbID + '.txt');
+      loadExtendedInfo(this.imdbID);
     }
   }
 
@@ -71,9 +74,15 @@ class MovieItem {
     };
   }
 
-  void loadExtendedInfo(path) async {
-    jsonFull = await jsonDecode(await rootBundle.loadString(path))
-        as Map<String, dynamic>;
+  fetchFullInfo(String imdbid) async {
+    var response =
+        await http.get("http://www.omdbapi.com/?apikey=$_apiKey&i=$imdbid");
+    return response.body;
+  }
+
+  void loadExtendedInfo(imdbId) async {
+    jsonFull =
+        await jsonDecode(await fetchFullInfo(imdbID)) as Map<String, dynamic>;
     this.rated = await jsonFull['Rated'];
     this.released = await jsonFull['Released'];
     this.runtime = await jsonFull['Runtime'];
@@ -106,16 +115,14 @@ class MovieItemListView extends StatelessWidget {
               margin: const EdgeInsets.only(right: 10),
               width: 100,
               height: 150,
-              child: mov.info['Poster'].isEmpty | (mov.info['Poster'] == 'None')
+              child: mov.info['Poster'].isEmpty | (mov.info['Poster'] == 'N/A')
                   ? Center(
                       //
                       child: CircularProgressIndicator(
                       strokeWidth: 6.0,
                       backgroundColor: Colors.green[800],
                     )) //  Icon(Icons.no_cell, color: Colors.red, size: 30.0)
-                  : Image(
-                      image:
-                          AssetImage("assets/Posters/" + mov.info['Poster'])))),
+                  : Image.network(mov.info["Poster"]))),
       Expanded(
           flex: 3,
           child: Padding(
@@ -155,11 +162,12 @@ class MovieItemDetailedView extends StatelessWidget {
               padding: EdgeInsets.all(8.0),
               height: 250,
               width: 100,
-              child: mov.info['Poster'].isEmpty | (mov.info['Poster'] == 'None')
+              child: mov.info['Poster'].isEmpty | (mov.info['Poster'] == 'N/A')
                   ? Center(
                       child: CircularProgressIndicator(
                           strokeWidth: 6.0, backgroundColor: Colors.green[800]))
-                  : Image.asset("assets/Posters/" + mov.info['Poster']),
+                  : Image.network(mov.info["Poster"]),
+              //Image.asset("assets/Posters/" + mov.info['Poster']),
             ),
             Container(
               margin: EdgeInsets.fromLTRB(15.0, 15.0, 15.0, 15.0),

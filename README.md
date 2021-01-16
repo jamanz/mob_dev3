@@ -13,3 +13,7 @@ https://www.youtube.com/watch?v=VUg3zLmMo-k
 # lab 6 
 
 Варіант 3(Тільки PieChart) ![](https://media3.giphy.com/media/8tudCphARgNHEu4hX2/giphy.gif)
+
+# Lab 7
+
+Варіант 3 https://www.youtube.com/watch?v=Z8Qg9QJ06PE

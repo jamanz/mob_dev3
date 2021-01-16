@@ -8,9 +8,25 @@ import 'package:provider/provider.dart';
 import 'add.dart';
 import 'album.dart';
 import 'chart.dart';
+import 'package:http/http.dart' as http;
 
-Future<void> main() async {
+void main() {
   runApp(MyApp());
+}
+
+class Requester {
+  static const String _apiKey = '7e9fe69e';
+  String request;
+  String url;
+
+  Future<http.Response> fetchSearch(String request) {
+    return http
+        .get("http://www.omdbapi.com/?apikey=$_apiKey&s=$request&page=1");
+  }
+
+  Future<http.Response> fetchFullInfo(String imdbid) {
+    return http.get("http://www.omdbapi.com/?apikey=$_apiKey&i=$imdbid");
+  }
 }
 
 Future<String> getMoviesData(String path) async {
@@ -60,6 +76,7 @@ class HomeBody extends StatefulWidget {
 class _HomeBodyState extends State<HomeBody> {
   List<MovieItem> movieList = [];
   int indexTab = 0;
+  Requester requester = new Requester();
 
   void _addMovieToList(MovieItem mov) {
     Provider.of<MovieList>(context, listen: false).addNew(mov);
@@ -75,7 +92,7 @@ class _HomeBodyState extends State<HomeBody> {
               IconButton(
                   icon: Icon(Icons.search),
                   onPressed: () {
-                    showSearch(context: context, delegate: Search(movieList));
+                    showSearch(context: context, delegate: Search());
                   })
             ],
             bottom: TabBar(
@@ -118,16 +135,17 @@ class _HomeBodyState extends State<HomeBody> {
 
   Widget homePageBuilder(BuildContext context) {
     return FutureBuilder(
-        future:
-            DefaultAssetBundle.of(context).loadString("assets/MoviesList.txt"),
+        future: requester.fetchSearch('Stringer'),
+        // DefaultAssetBundle.of(context).loadString("assets/MoviesList.txt"),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            if (movieList.isEmpty) {
-              var json = jsonDecode(snapshot.data.toString());
-              for (var item in json["Search"]) {
-                movieList.add(MovieItem.fromJson(item));
-                _addMovieToList(MovieItem.fromJson(item));
-              }
+            // if (movieList.isEmpty) {
+            var json = jsonDecode(snapshot.data.body);
+            debugPrint(json.toString());
+            for (var item in json["Search"]) {
+              movieList.add(MovieItem.fromJson(item));
+              _addMovieToList(MovieItem.fromJson(item));
+              // }
             }
           }
 
